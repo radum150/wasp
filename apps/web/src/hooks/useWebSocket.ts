@@ -8,9 +8,25 @@ import { useAuthStore } from '../store/auth';
 import { useChatStore } from '../store/chat';
 import { wsClient } from '../lib/wsClient';
 import { cryptoManager } from '../lib/cryptoManager';
+import { api } from '../lib/api';
 import type { MessageContent } from '@wasp/types';
 import type { MessageEnvelope } from '@wasp/crypto';
 import { fromHex } from '@wasp/crypto';
+
+const displayNameCache = new Map<string, string>();
+
+async function resolveDisplayName(userId: string): Promise<string> {
+  const cached = displayNameCache.get(userId);
+  if (cached) return cached;
+  try {
+    const profile = await api.users.getById(userId) as { displayName?: string; username?: string };
+    const name = profile.displayName ?? profile.username ?? userId;
+    displayNameCache.set(userId, name);
+    return name;
+  } catch {
+    return userId;
+  }
+}
 
 export function useWebSocket() {
   const tokens = useAuthStore((s) => s.tokens);
@@ -36,7 +52,6 @@ export function useWebSocket() {
         let session = cryptoManager.getSession(from);
 
         if (envelope.isPreKeyMessage || !session) {
-          // Session initialization from a pre-key message
           const senderSigningPubKey = envelope.senderSigningPublicKey
             ? fromHex(envelope.senderSigningPublicKey)
             : new Uint8Array(32);
@@ -53,23 +68,22 @@ export function useWebSocket() {
           plaintext = result.plaintext;
           session = result.session;
         } else {
-          const senderSigningPubKey = new Uint8Array(32); // Load from contact store
+          const senderSigningPubKey = fromHex(session.contactIdentityKey);
           const result = cryptoManager.decrypt(session, envelope, senderSigningPubKey);
           plaintext = result.plaintext;
         }
 
         const content = JSON.parse(new TextDecoder().decode(plaintext)) as MessageContent;
 
-        // Deterministic DM conversation ID (same formula used in NewChatModal)
         const conversationId = ['dm', ...[from, currentUserId!].sort()].join('-');
+        const senderDisplayName = await resolveDisplayName(from);
 
-        // Auto-create conversation in store if it doesn't exist yet
         const storeState = useChatStore.getState();
         if (!storeState.conversations.find((c) => c.id === conversationId)) {
           upsertConversation({
             id: conversationId,
             type: 'direct',
-            name: from, // best-effort; real display name resolved when contact is loaded
+            name: senderDisplayName,
             participantIds: [from, currentUserId!],
             createdAt: Date.now(),
             unreadCount: 1,
@@ -83,7 +97,7 @@ export function useWebSocket() {
           id: messageId,
           conversationId,
           senderId: from,
-          senderDisplayName: from, // TODO: resolve from contacts
+          senderDisplayName,
           content,
           status: 'delivered',
           createdAt: content.timestamp ?? Date.now(),
