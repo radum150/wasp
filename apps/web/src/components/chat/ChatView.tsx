@@ -55,7 +55,10 @@ export function ChatView({ conversation, onBack }: ChatViewProps) {
 
   const typingUsers = Object.entries(typing[conversation.id] ?? {})
     .filter(([userId, isTyping]) => isTyping && userId !== currentUser?.id)
-    .map(([userId]) => userId);
+    .map(([userId]) =>
+      // For DMs the other party is always conversation.name; groups fall back to userId
+      conversation.type === 'direct' ? conversation.name : userId,
+    );
 
   const contactId = conversation.participantIds.find((id) => id !== currentUser?.id);
   const isOnline = contactId ? (presence[contactId]?.isOnline ?? false) : false;

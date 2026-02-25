@@ -17,7 +17,8 @@ import {
   deserializeSignedPreKey,
   serializeOneTimePreKey,
   deserializeOneTimePreKey,
-  createOutgoingSession,
+  x3dhSend,
+  initSenderSession,
   createIncomingSession,
   encryptMessage,
   decryptMessage,
@@ -39,6 +40,8 @@ const OPK_COUNTER_KEY = 'wasp-opk-counter';
 export class CryptoManager {
   private identityKey: IdentityKey | null = null;
   private sessions = new Map<string, Session>();
+  // Ephemeral X3DH keys for first messages — consumed on first encrypt
+  private pendingX3dh = new Map<string, { ephemeralPublicKey: Uint8Array; usedOneTimePreKeyId?: number }>();
 
   async initialize(): Promise<{ isNew: boolean }> {
     const stored = localStorage.getItem(IDENTITY_KEY_STORAGE);
@@ -148,9 +151,29 @@ export class CryptoManager {
         : undefined,
     };
 
-    const session = createOutgoingSession(this.getIdentityKey(), recipientBundle);
-    this.saveSession(session);
+    // Run X3DH manually so we can retain the ephemeral key for the first message envelope
+    const x3dhOutput = x3dhSend(this.getIdentityKey(), recipientBundle);
+    const ratchetState = initSenderSession(
+      x3dhOutput.sharedSecret,
+      recipientBundle.signedPreKey.publicKey,
+    );
+    const session: Session = {
+      contactId: recipientBundle.userId,
+      contactIdentityKey: toHex(recipientBundle.identitySigningPublicKey),
+      ratchetState,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    };
 
+    // Store ephemeral key so it can be embedded in the first encrypted envelope
+    this.pendingX3dh.set(contactId, {
+      ephemeralPublicKey: x3dhOutput.ephemeralPublicKey,
+      ...(x3dhOutput.usedOneTimePreKeyId !== undefined
+        ? { usedOneTimePreKeyId: x3dhOutput.usedOneTimePreKeyId }
+        : {}),
+    });
+
+    this.saveSession(session);
     return { session, isNew: true };
   }
 
@@ -160,7 +183,23 @@ export class CryptoManager {
     isFirstMessage: boolean,
   ): { envelope: MessageEnvelope; updatedSession: Session } {
     const ik = this.getIdentityKey();
-    const { envelope, updatedSession } = encryptMessage(session, plaintext, ik, isFirstMessage);
+
+    // For the first message, include the X3DH ephemeral key so the receiver
+    // can reconstruct the shared secret (X3DH receiver side)
+    let ephemeralPublicKey: Uint8Array | undefined;
+    let usedOneTimePreKeyId: number | undefined;
+    if (isFirstMessage) {
+      const pending = this.pendingX3dh.get(session.contactId);
+      if (pending) {
+        ephemeralPublicKey = pending.ephemeralPublicKey;
+        usedOneTimePreKeyId = pending.usedOneTimePreKeyId;
+        this.pendingX3dh.delete(session.contactId);
+      }
+    }
+
+    const { envelope, updatedSession } = encryptMessage(
+      session, plaintext, ik, isFirstMessage, ephemeralPublicKey, usedOneTimePreKeyId,
+    );
     this.saveSession(updatedSession);
     return { envelope, updatedSession };
   }
