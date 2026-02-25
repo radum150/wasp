@@ -9,7 +9,7 @@
 
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import { getUserById, getUserByUsername, searchUsersByUsername, storeUser } from '../redis.js';
+import { getUserById, searchUsersByUsername, storeUser } from '../redis.js';
 import { config } from '../config.js';
 
 const UpdateProfileSchema = z.object({
@@ -24,22 +24,6 @@ const SearchSchema = z.object({
 });
 
 export async function usersRoutes(app: FastifyInstance): Promise<void> {
-  const auth = {
-    preHandler: async (
-      request: Parameters<typeof app.get>[1] extends object ? Parameters<typeof app.get>[1] : never,
-      reply: Parameters<typeof app.get>[2] extends object ? Parameters<typeof app.get>[2] : never,
-    ) => {
-      try {
-        await (request as { jwtVerify: () => Promise<void> }).jwtVerify();
-      } catch {
-        return (reply as { status: (n: number) => { send: (v: unknown) => void } })
-          .status(401)
-          .send({ success: false, error: { code: 'UNAUTHORIZED', message: 'Authentication required' } });
-      }
-    },
-  };
-  void auth;
-
   const requireAuth = async (
     request: { jwtVerify: () => Promise<void> },
     reply: { status: (n: number) => { send: (v: unknown) => void } },
@@ -97,12 +81,13 @@ export async function usersRoutes(app: FastifyInstance): Promise<void> {
         return reply.status(404).send({ success: false, error: { code: 'NOT_FOUND', message: 'User not found' } });
       }
 
-      const updated = {
-        ...existing,
-        ...(body.data.displayName && { displayName: body.data.displayName }),
-        ...(body.data.about !== undefined && { about: body.data.about }),
-        ...(body.data.avatarUrl !== undefined && { avatarUrl: body.data.avatarUrl ?? undefined }),
-      };
+      const updated = { ...existing };
+      if (body.data.displayName) updated.displayName = body.data.displayName;
+      if (body.data.about !== undefined) updated.about = body.data.about;
+      if (body.data.avatarUrl !== undefined) {
+        if (body.data.avatarUrl === null) delete updated.avatarUrl;
+        else updated.avatarUrl = body.data.avatarUrl;
+      }
 
       await storeUser(updated);
 

@@ -16,7 +16,6 @@
 import type { FastifyInstance } from 'fastify';
 import type WebSocket from 'ws';
 import {
-  getRedis,
   setUserOnline,
   setUserOffline,
   enqueueOfflineMessage,
@@ -87,7 +86,7 @@ export async function registerRelay(app: FastifyInstance): Promise<void> {
   app.get(
     '/ws',
     { websocket: true },
-    (socket, request) => {
+    (socket, _request) => {
       let authenticatedUserId: string | null = null;
       let pingInterval: NodeJS.Timeout | null = null;
 
@@ -110,7 +109,7 @@ export async function registerRelay(app: FastifyInstance): Promise<void> {
         // Connection is alive
       });
 
-      socket.on('message', async (rawData) => {
+      socket.on('message', async (rawData: Buffer | string) => {
         let msg: WSInboundMessage;
         try {
           msg = JSON.parse(rawData.toString()) as WSInboundMessage;
@@ -307,7 +306,7 @@ export async function registerRelay(app: FastifyInstance): Promise<void> {
         }
       });
 
-      socket.on('error', (err) => {
+      socket.on('error', (err: Error) => {
         app.log.error({ err }, 'WS: Socket error');
       });
     },

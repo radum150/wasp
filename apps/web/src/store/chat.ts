@@ -147,7 +147,11 @@ export const useChatStore = create<ChatState>((set) => ({
     set((state) => {
       const newPresence = { ...state.presence };
       for (const { userId, online, lastSeen } of updates) {
-        newPresence[userId] = { isOnline: online, lastSeen: lastSeen ?? newPresence[userId]?.lastSeen };
+        const resolvedLastSeen = lastSeen ?? newPresence[userId]?.lastSeen;
+        newPresence[userId] = {
+          isOnline: online,
+          ...(resolvedLastSeen !== undefined ? { lastSeen: resolvedLastSeen } : {}),
+        };
       }
       return { presence: newPresence };
     }),

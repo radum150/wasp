@@ -8,7 +8,8 @@ import { useAuthStore } from '../store/auth';
 import { useChatStore } from '../store/chat';
 import { wsClient } from '../lib/wsClient';
 import { cryptoManager } from '../lib/cryptoManager';
-import type { MessageContent, MessageEnvelope } from '@wasp/types';
+import type { MessageContent } from '@wasp/types';
+import type { MessageEnvelope } from '@wasp/crypto';
 import { fromHex } from '@wasp/crypto';
 
 export function useWebSocket() {

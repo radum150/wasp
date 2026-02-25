@@ -128,7 +128,7 @@ function initializeSchema(db: DB): void {
   }
 }
 
-function runMigrations(db: DB, fromVersion: number): void {
+function runMigrations(_db: DB, fromVersion: number): void {
   // Future migrations go here
   // Example:
   // if (fromVersion < 2) { db.exec(MIGRATION_V2); }

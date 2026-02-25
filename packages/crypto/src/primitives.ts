@@ -69,7 +69,6 @@ export function verify(publicKey: Uint8Array, message: Uint8Array, signature: Ui
 // ─── HKDF ────────────────────────────────────────────────────────────────────
 
 const HKDF_INFO_ROOT = new TextEncoder().encode('WASP_ROOT_KEY');
-const HKDF_INFO_CHAIN = new TextEncoder().encode('WASP_CHAIN_KEY');
 const HKDF_INFO_MESSAGE = new TextEncoder().encode('WASP_MESSAGE_KEY');
 const HKDF_INFO_X3DH = new TextEncoder().encode('WASP_X3DH_MASTER_SECRET_v1');
 

@@ -16,6 +16,7 @@ import {
   serializeSignedPreKey,
   deserializeSignedPreKey,
   serializeOneTimePreKey,
+  deserializeOneTimePreKey,
   createOutgoingSession,
   createIncomingSession,
   encryptMessage,
@@ -27,8 +28,8 @@ import {
   type IdentityKey,
   type Session,
   type MessageEnvelope,
+  type RecipientPreKeyBundle,
 } from '@wasp/crypto';
-import type { RecipientPreKeyBundle } from '@wasp/crypto';
 import { api } from './api';
 
 const IDENTITY_KEY_STORAGE = 'wasp-identity-key';
@@ -189,7 +190,6 @@ export class CryptoManager {
       const opkMap: Record<number, string> = JSON.parse(localStorage.getItem('wasp-opks') ?? '{}');
       const opkStr = opkMap[envelope.usedOneTimePreKeyId];
       if (opkStr) {
-        const { deserializeOneTimePreKey } = require('@wasp/crypto');
         opk = deserializeOneTimePreKey(JSON.parse(opkStr));
         // Remove consumed OPK
         delete opkMap[envelope.usedOneTimePreKeyId];

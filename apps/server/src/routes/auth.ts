@@ -88,7 +88,7 @@ async function generateTokens(app: FastifyInstance, userId: string) {
   );
   const refreshToken = await app.jwt.sign(
     { sub: userId, type: 'refresh' },
-    { expiresIn: config.JWT_REFRESH_EXPIRES_IN, secret: config.JWT_REFRESH_SECRET },
+    { expiresIn: config.JWT_REFRESH_EXPIRES_IN },
   );
 
   // Store refresh token in Redis for revocation
@@ -143,7 +143,7 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
       id: userId,
       username,
       displayName,
-      phoneNumber,
+      ...(phoneNumber !== undefined ? { phoneNumber } : {}),
       passwordHash,
       registrationId,
       createdAt: Date.now(),
@@ -224,7 +224,6 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
     try {
       const decoded = await app.jwt.verify<{ sub: string; type: string }>(
         body.data.refreshToken,
-        { secret: config.JWT_REFRESH_SECRET },
       );
 
       if (decoded.type !== 'refresh') {

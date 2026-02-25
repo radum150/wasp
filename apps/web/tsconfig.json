@@ -10,6 +10,8 @@
     "strict": true,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
+    "exactOptionalPropertyTypes": false,
+    "types": ["vite/client"],
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]

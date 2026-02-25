@@ -11,7 +11,7 @@
  * - Edge cases and error conditions
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import {
   // Identity
   generateIdentityKey,
@@ -204,7 +204,7 @@ describe('X3DH Key Agreement', () => {
       ephemeralPublicKey: aliceOutput.ephemeralPublicKey,
       identityKey: bob.identityKey,
       signedPreKey: bobSignedPreKey,
-      oneTimePreKey: bobOneTimePreKeys[0],
+      ...(bobOneTimePreKeys[0] !== undefined ? { oneTimePreKey: bobOneTimePreKeys[0] } : {}),
     });
 
     expect(constantTimeEqual(aliceOutput.sharedSecret, bobSecret)).toBe(true);
@@ -270,9 +270,9 @@ describe('X3DH Key Agreement', () => {
     // Second session (no OPK this time)
     const bobBundle2: RecipientPreKeyBundle = {
       ...bobBundle,
-      oneTimePreKey: bobOneTimePreKeys[1]
-        ? { keyId: bobOneTimePreKeys[1].keyId, publicKey: bobOneTimePreKeys[1].publicKey }
-        : undefined,
+      ...(bobOneTimePreKeys[1]
+        ? { oneTimePreKey: { keyId: bobOneTimePreKeys[1].keyId, publicKey: bobOneTimePreKeys[1].publicKey } }
+        : {}),
     };
     const output2 = x3dhSend(alice.identityKey, bobBundle2);
 

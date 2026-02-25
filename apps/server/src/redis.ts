@@ -12,7 +12,7 @@
  * Offline message envelopes are opaque encrypted blobs.
  */
 
-import Redis from 'ioredis';
+import { Redis } from 'ioredis';
 import { config, isDev } from './config.js';
 
 let redis: Redis | null = null;
@@ -70,7 +70,7 @@ const memRedis = {
   hgetall: async (key: string) => memHashes[key] ?? {},
 };
 
-export function getRedis(): typeof memRedis | Redis {
+export function getRedis(): typeof memRedis | InstanceType<typeof Redis> {
   if (usingMemoryFallback) return memRedis;
   if (!redis) {
     redis = new Redis(config.REDIS_URL, {
@@ -270,7 +270,7 @@ export async function drainOfflineQueue(recipientId: string): Promise<OfflineEnv
   if (all.length > 0) {
     await r.del(queueKey);
   }
-  return all.map((s) => JSON.parse(s) as OfflineEnvelope);
+  return all.map((s: string) => JSON.parse(s) as OfflineEnvelope);
 }
 
 // ─── Presence ─────────────────────────────────────────────────────────────────

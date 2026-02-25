@@ -15,7 +15,6 @@ import {
   uploadOneTimePreKeys,
   consumeOneTimePreKey,
   countOneTimePreKeys,
-  getUserById,
 } from '../redis.js';
 import { config } from '../config.js';
 
@@ -43,16 +42,6 @@ const UploadPreKeysSchema = z.object({
 });
 
 export async function keysRoutes(app: FastifyInstance): Promise<void> {
-  // Auth middleware for all key routes
-  const requireAuth = async (request: Parameters<typeof app.get>[1] extends infer T ? T extends { preHandler?: infer H } ? H : never : never, reply: Parameters<typeof app.get>[1] extends infer T ? T extends { preHandler?: unknown[] } ? never : never : never) => {
-    try {
-      await (request as Parameters<typeof app.addHook>[1]).jwtVerify?.();
-    } catch {
-      // handled below
-    }
-  };
-  void requireAuth; // will use inline preHandler
-
   // GET /keys/:userId/bundle — fetch a user's PreKey Bundle
   app.get<{ Params: { userId: string } }>(
     '/:userId/bundle',

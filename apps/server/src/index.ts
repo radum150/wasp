@@ -44,9 +44,7 @@ import { usersRoutes } from './routes/users.js';
 const app = Fastify({
   logger: {
     level: isDev ? 'debug' : 'info',
-    transport: isDev
-      ? { target: 'pino-pretty', options: { colorize: true, translateTime: 'HH:MM:ss' } }
-      : undefined,
+    ...(isDev ? { transport: { target: 'pino-pretty', options: { colorize: true, translateTime: 'HH:MM:ss' } } } : {}),
   },
   trustProxy: true,
   bodyLimit: config.MAX_MESSAGE_SIZE_BYTES * 2,

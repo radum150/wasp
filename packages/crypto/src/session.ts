@@ -122,7 +122,7 @@ export function createIncomingSession(
     ephemeralPublicKey,
     identityKey: receiverIdentityKey,
     signedPreKey,
-    oneTimePreKey,
+    ...(oneTimePreKey !== undefined ? { oneTimePreKey } : {}),
   });
 
   const ratchetState = initReceiverSession(sharedSecret, {
@@ -184,7 +184,9 @@ export function encryptMessage(
   if (isFirstMessage && x3dhEphemeralPublicKey) {
     envelope.senderIdentityDHKey = toHex(senderIdentityKey.dhPublicKey);
     envelope.ephemeralKey = toHex(x3dhEphemeralPublicKey);
-    envelope.usedOneTimePreKeyId = usedOneTimePreKeyId;
+    if (usedOneTimePreKeyId !== undefined) {
+      envelope.usedOneTimePreKeyId = usedOneTimePreKeyId;
+    }
   }
 
   const updatedSession: Session = {

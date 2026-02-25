@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Lock, Bell, Moon, Shield, LogOut, ChevronRight, FlaskConical, Trash2 } from 'lucide-react';
 import { useAuthStore } from '../store/auth';
@@ -38,7 +38,16 @@ export default function SettingsPage() {
     }
   })();
 
-  const sections = [
+  type SettingsItem = {
+    icon: ReactNode;
+    label: string;
+    description: string;
+    onClick: () => void;
+    right?: ReactNode;
+  };
+  type SettingsSection = { title: string; items: SettingsItem[] };
+
+  const sections: SettingsSection[] = [
     {
       title: 'Account',
       items: [

@@ -129,7 +129,7 @@ export function x3dhSend(
   return {
     sharedSecret,
     ephemeralPublicKey: ephemeralKeyPair.publicKey,
-    usedOneTimePreKeyId,
+    ...(usedOneTimePreKeyId !== undefined ? { usedOneTimePreKeyId } : {}),
   };
 }
 
@@ -141,15 +141,6 @@ export function x3dhSend(
  * Bob can reproduce the exact same shared secret without prior interaction.
  */
 export function x3dhReceive(input: X3DHReceiverInput): Uint8Array {
-  const dh1 = dh(input.identityKey.dhPrivateKey, input.senderIdentityDHPublicKey);
-
-  // Note: DH is symmetric, so the order of inputs is swapped vs Alice's computation
-  const dh2 = dh(input.signedPreKey.privateKey, input.senderIdentityDHPublicKey);
-  const dh3 = dh(input.signedPreKey.privateKey, input.ephemeralPublicKey);
-
-  // Re-add DH1 computed from SPK perspective:
-  // Actually per spec: Bob computes DH(SPK_B, IK_A) || DH(IK_B, EK_A) || DH(SPK_B, EK_A) ...
-  // Let me be precise:
   // Alice computed: DH(IK_A, SPK_B) || DH(EK_A, IK_B) || DH(EK_A, SPK_B)
   // Bob computes:   DH(SPK_B, IK_A) || DH(IK_B, EK_A) || DH(SPK_B, EK_A)
   // Since DH(a,B) = DH(b,A) these are identical.
