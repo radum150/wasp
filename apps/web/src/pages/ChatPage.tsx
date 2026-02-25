@@ -4,6 +4,7 @@ import { MessageSquarePlus, Settings, Users } from 'lucide-react';
 import { clsx } from 'clsx';
 import { ChatView } from '../components/chat/ChatView';
 import { ConversationList } from '../components/sidebar/ConversationList';
+import { NewChatModal } from '../components/sidebar/NewChatModal';
 import { Avatar } from '../components/ui/Avatar';
 import { useChatStore } from '../store/chat';
 import { useAuthStore } from '../store/auth';
@@ -17,6 +18,7 @@ export default function ChatPage() {
   const { conversations, setActiveConversation, markConversationRead } = useChatStore();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [cryptoReady, setCryptoReady] = useState(false);
+  const [newChatOpen, setNewChatOpen] = useState(false);
 
   // Initialize E2E crypto
   useEffect(() => {
@@ -75,6 +77,7 @@ export default function ChatPage() {
           </div>
           <div className="flex items-center gap-1">
             <button
+              onClick={() => setNewChatOpen(true)}
               className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-gray-600 dark:text-gray-300"
               title="New chat"
             >
@@ -150,6 +153,12 @@ export default function ChatPage() {
           </div>
         )}
       </div>
+      {newChatOpen && (
+        <NewChatModal
+          onClose={() => setNewChatOpen(false)}
+          onSelectConversation={handleSelectConversation}
+        />
+      )}
     </div>
   );
 }

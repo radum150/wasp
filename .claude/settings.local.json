@@ -4,7 +4,8 @@
       "Bash(npm install:*)",
       "Bash(npm run:*)",
       "Bash(grep:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(git add:*)"
     ]
   }
 }
