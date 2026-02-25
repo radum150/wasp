@@ -60,8 +60,25 @@ export function useWebSocket() {
 
         const content = JSON.parse(new TextDecoder().decode(plaintext)) as MessageContent;
 
-        // Find or create conversation
-        const conversationId = from; // DM: use senderId as conv ID
+        // Deterministic DM conversation ID (same formula used in NewChatModal)
+        const conversationId = ['dm', ...[from, currentUserId!].sort()].join('-');
+
+        // Auto-create conversation in store if it doesn't exist yet
+        const storeState = useChatStore.getState();
+        if (!storeState.conversations.find((c) => c.id === conversationId)) {
+          upsertConversation({
+            id: conversationId,
+            type: 'direct',
+            name: from, // best-effort; real display name resolved when contact is loaded
+            participantIds: [from, currentUserId!],
+            createdAt: Date.now(),
+            unreadCount: 1,
+            isMuted: false,
+            isPinned: false,
+            isArchived: false,
+          });
+        }
+
         appendMessage(conversationId, {
           id: messageId,
           conversationId,

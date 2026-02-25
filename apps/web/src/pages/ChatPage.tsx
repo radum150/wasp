@@ -20,9 +20,21 @@ export default function ChatPage() {
   const [cryptoReady, setCryptoReady] = useState(false);
   const [newChatOpen, setNewChatOpen] = useState(false);
 
-  // Initialize E2E crypto
+  // Initialize E2E crypto and ensure keys are uploaded to the server
   useEffect(() => {
-    cryptoManager.initialize().then(() => setCryptoReady(true)).catch(console.error);
+    cryptoManager.initialize().then(async ({ isNew }) => {
+      // Upload keys if this is a new identity or we haven't registered yet
+      if (isNew || !localStorage.getItem('wasp-keys-registered')) {
+        try {
+          await cryptoManager.uploadInitialKeys();
+          localStorage.setItem('wasp-keys-registered', '1');
+        } catch (err) {
+          console.error('[Crypto] Failed to upload keys:', err);
+          // Don't block the app — will retry next session
+        }
+      }
+      setCryptoReady(true);
+    }).catch(console.error);
   }, []);
 
   // Connect WebSocket

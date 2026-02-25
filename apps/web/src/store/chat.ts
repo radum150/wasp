@@ -4,6 +4,7 @@
  */
 
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import type { Conversation, Message, Contact, MessageStatus } from '@wasp/types';
 
 interface TypingState {
@@ -45,7 +46,9 @@ interface ChatState {
   setTyping: (conversationId: string, userId: string, isTyping: boolean) => void;
 }
 
-export const useChatStore = create<ChatState>((set) => ({
+export const useChatStore = create<ChatState>()(
+  persist(
+    (set) => ({
   conversations: [],
   messages: {},
   contacts: [],
@@ -166,4 +169,14 @@ export const useChatStore = create<ChatState>((set) => ({
         },
       },
     })),
-}));
+    }),
+    {
+      name: 'wasp-chat',
+      partialize: (state) => ({
+        conversations: state.conversations,
+        messages: state.messages,
+        contacts: state.contacts,
+      }),
+    },
+  ),
+);

@@ -40,13 +40,15 @@ export class CryptoManager {
   private identityKey: IdentityKey | null = null;
   private sessions = new Map<string, Session>();
 
-  async initialize(): Promise<void> {
+  async initialize(): Promise<{ isNew: boolean }> {
     const stored = localStorage.getItem(IDENTITY_KEY_STORAGE);
+    let isNew = false;
     if (stored) {
       this.identityKey = deserializeIdentityKey(JSON.parse(stored));
     } else {
       this.identityKey = generateIdentityKey();
       localStorage.setItem(IDENTITY_KEY_STORAGE, JSON.stringify(serializeIdentityKey(this.identityKey)));
+      isNew = true;
     }
 
     // Load sessions from storage
@@ -64,6 +66,8 @@ export class CryptoManager {
         }
       }
     }
+
+    return { isNew };
   }
 
   getIdentityKey(): IdentityKey {
