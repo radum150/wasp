@@ -1,0 +1,55 @@
+###############################################################################
+#  WASP — render.yaml
+#  One-click Render blueprint: Node.js web service + Redis
+#
+#  Deploy:
+#    1. Push this repo to GitHub / GitLab
+#    2. Go to https://dashboard.render.com → New → Blueprint
+#    3. Connect your repo and let Render do the rest
+#
+#  After first deploy, copy your service URL (e.g. https://wasp.onrender.com)
+#  and set  CORS_ORIGINS  to that value in the Environment tab.
+###############################################################################
+
+services:
+  # ── Web service (Node.js relay + serves the React SPA) ──────────────────────
+  - type: web
+    name: wasp
+    runtime: node
+    region: oregon
+    plan: free
+
+    # Render sets PORT automatically; we just need to install & build everything.
+    buildCommand: "npm install --ignore-scripts && npm run build"
+    startCommand: "node apps/server/dist/index.js"
+
+    envVars:
+      - key: NODE_ENV
+        value: production
+
+      # Auto-generated strong secrets — Render stores them securely
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+
+      # Injected automatically from the Redis service below
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: wasp-redis
+          property: connectionString
+
+      # ⚠️  Update this to your actual Render URL after first deploy, e.g.:
+      #     https://wasp.onrender.com
+      # If you skip this, CORS is only allowed from localhost in dev mode.
+      - key: CORS_ORIGINS
+        value: "https://wasp.onrender.com"
+
+  # ── Redis (ephemeral session routing + offline queue) ───────────────────────
+  - type: redis
+    name: wasp-redis
+    region: oregon
+    plan: free
+    maxmemoryPolicy: allkeys-lru
+    ipAllowList: []        # only allow internal Render network access

@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --sidebar-width: 420px;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    @apply bg-gray-100 text-gray-900 dark:bg-gray-900 dark:text-gray-100;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 dark:bg-gray-600 rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-400 dark:bg-gray-500;
+  }
+}
+
+@layer components {
+  .chat-bubble-sent {
+    @apply bg-chat-bubble-sent dark:bg-chat-bubble-sent-dark rounded-tl-2xl rounded-tr-sm rounded-b-2xl;
+  }
+  .chat-bubble-received {
+    @apply bg-white dark:bg-chat-bubble-dark rounded-tr-2xl rounded-tl-sm rounded-b-2xl;
+  }
+
+  /* Message status ticks */
+  .tick-sent::after {
+    content: '✓';
+    @apply text-gray-500 text-xs ml-1;
+  }
+  .tick-delivered::after {
+    content: '✓✓';
+    @apply text-gray-500 text-xs ml-1;
+  }
+  .tick-read::after {
+    content: '✓✓';
+    @apply text-blue-500 text-xs ml-1;
+  }
+}

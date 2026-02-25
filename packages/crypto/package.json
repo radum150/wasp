@@ -1,0 +1,35 @@
+{
+  "name": "@wasp/crypto",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Signal Protocol implementation for WASP — X3DH + Double Ratchet",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "@noble/ciphers": "^0.5.3",
+    "@noble/curves": "^1.4.0",
+    "@noble/hashes": "^1.4.0",
+    "@wasp/types": "*"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^1.6.0",
+    "rimraf": "^5.0.5",
+    "typescript": "^5.4.5",
+    "vitest": "^1.6.0"
+  }
+}
