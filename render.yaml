@@ -20,7 +20,7 @@ services:
     plan: free
 
     # Render sets PORT automatically; we just need to install & build everything.
-    buildCommand: "npm install --ignore-scripts && npm run build"
+    buildCommand: "npm install --ignore-scripts --include=dev && npm run build"
     startCommand: "node apps/server/dist/index.js"
 
     envVars:
